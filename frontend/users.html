@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пользователи - Автомастерская</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo.png" alt="Логотип автомастерской">
+                </a>
+                <h1>Автомастерская "Мотор"</h1>
+            </div>
+            <div class="auth-buttons">
+                <button id="logout-btn" class="btn-logout">Выйти</button>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class="welcome-section">
+            <h2>Пользователи</h2>
+            <button id="add-user-btn" class="btn-add">Добавить пользователя</button>
+            <div id="users-list">
+                <!-- Список пользователей будет загружен здесь -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Автомастерская "Мотор". Все права защищены.</p>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                window.location.href = 'login.html'; // Перенаправление на страницу входа, если пользователь не авторизован
+                return;
+            }
+
+            // Загружаем пользователей
+            fetchUsers();
+
+            // Обработка кнопки "Добавить пользователя"
+            document.getElementById('add-user-btn').addEventListener('click', function() {
+                addUser();
+            });
+        });
+
+        function fetchUsers() {
+            fetch('/api/users.php', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки пользователей');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const usersList = document.getElementById('users-list');
+                usersList.innerHTML = ''; // Очищаем список перед загрузкой новых данных
+
+                data.forEach(user => {
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user-item';
+                    userDiv.innerHTML = `
+                        <h3>Пользователь #${user.UserID}</h3>
+                        <p>Логин: ${user.Login}</p>
+                        <p>Роль: ${user.Role}</p>
+                        <button onclick="editUser(${user.UserID})" class="btn-edit">Редактировать</button>
+                        <button onclick="deleteUser(${user.UserID})" class="btn-delete">Удалить</button>
+                    `;
+                    usersList.appendChild(userDiv);
+                });
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Не удалось загрузить пользователей. Проверьте консоль для подробностей.');
+            });
+        }
+
+        function editUser(userID) {
+            const newLogin = prompt('Введите новый логин:');
+            const newPassword = prompt('Введите новый пароль:');
+            const newRole = prompt('Введите новую роль:');
+
+            if (newLogin && newPassword && newRole) {
+                fetch('/api/users.php', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        UserID: userID,
+                        Login: newLogin,
+                        Password: newPassword,
+                        Role: newRole
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Ошибка сервера: ${response.status} ${response.statusText}\n${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchUsers(); // Обновляем список пользователей
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось обновить пользователя. Проверьте консоль для подробностей.');
+                });
+            } else {
+                alert('Все поля должны быть заполнены!');
+            }
+        }
+
+        function deleteUser(userID) {
+            const confirmDelete = confirm('Вы уверены, что хотите удалить этого пользователя?');
+            if (confirmDelete) {
+                fetch('/api/users.php', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        UserID: userID
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка удаления пользователя');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchUsers(); // Обновляем список пользователей
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось удалить пользователя. Проверьте консоль для подробностей.');
+                });
+            }
+        }
+
+        function addUser() {
+            const login = prompt('Введите логин:');
+            const password = prompt('Введите пароль:');
+            const role = prompt('Введите роль:');
+
+            if (login && password && role) {
+                fetch('/api/users.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        Login: login,
+                        Password: password,
+                        Role: role
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка добавления пользователя');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchUsers(); // Обновляем список пользователей
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось добавить пользователя. Проверьте консоль для подробностей.');
+                });
+            } else {
+                alert('Все поля должны быть заполнены!');
+            }
+        }
+    </script>
+    <script src="js/logout.js"></script>
+</body>
+</html>

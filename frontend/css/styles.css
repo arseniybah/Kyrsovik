@@ -1,0 +1,228 @@
+/* Общие стили */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    background-image: url('../images/background.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    width: 100%;
+    text-align: center;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo a {
+    text-decoration: none; /* Убираем подчеркивание у ссылки */
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    height: 80px; /* Размер логотипа */
+    margin-right: 10px; /* Отступ справа от логотипа */
+}
+
+.logo h1 {
+    margin: 0;
+    font-size: 2em; /* Размер заголовка */
+    color: white; /* Цвет текста */
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-logout {
+    padding: 10px 20px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-logout:hover {
+    background-color: #cc0000;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+}
+
+.welcome-section {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 800px;
+    width: 100%;
+}
+
+.welcome-section h2 {
+    margin-bottom: 20px;
+}
+
+#user-role {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+#role {
+    color: #333;
+}
+
+.navigation {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Добавляем перенос кнопок на новую строку, если они не помещаются */
+    gap: 10px; /* Уменьшаем отступ между кнопками */
+    margin-top: 20px;
+}
+
+.nav-link {
+    padding: 15px 20px; /* Уменьшаем отступы внутри кнопок */
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    text-align: center; /* Выравниваем текст по центру */
+    flex: 1 1 calc(33.333% - 20px); /* Равномерное распределение кнопок в три колонки */
+    max-width: calc(33.333% - 20px); /* Ограничиваем максимальную ширину кнопок */
+    box-sizing: border-box; /* Учитываем padding в ширине */
+}
+
+.nav-link:hover {
+    background-color: #45a049;
+}
+
+footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    width: 100%;
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.9em;
+}
+
+/* Стили для формы входа/регистрации */
+.auth-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: center;
+}
+
+.auth-container h2 {
+    margin-bottom: 20px;
+}
+
+.auth-container label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.auth-container input {
+    width: 280px;
+    padding: 9px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.auth-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.auth-container button:hover {
+    background-color: #45a049;
+}
+
+.auth-switch {
+    margin-top: 10px;
+}
+
+.auth-switch a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+/* Общие стили для кнопок */
+.btn-home,
+.btn-add,
+.btn-edit,
+.btn-delete {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center; /* Выравниваем текст по центру */
+    display: inline-block;
+    margin: 10px;
+}
+
+.btn-home:hover,
+.btn-add:hover {
+    background-color: #45a049;
+}
+
+.btn-edit {
+    background-color: #ffa500;
+}
+
+.btn-edit:hover {
+    background-color: #cc8400;
+}
+
+.btn-delete {
+    background-color: #ff4d4d;
+}
+
+.btn-delete:hover {
+    background-color: #cc0000;
+}

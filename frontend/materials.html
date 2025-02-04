@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Материалы - Автомастерская</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo.png" alt="Логотип автомастерской">
+                </a>
+                <h1>Автомастерская "Мотор"</h1>
+            </div>
+            <div class="auth-buttons">
+                <button id="logout-btn" class="btn-logout">Выйти</button>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class="welcome-section">
+            <h2>Материалы</h2>
+            <button id="add-material-btn" class="btn-add">Добавить материал</button>
+            <div id="materials-list">
+                <!-- Список материалов будет загружен здесь -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Автомастерская "Мотор". Все права защищены.</p>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                window.location.href = 'login.html'; // Перенаправление на страницу входа, если пользователь не авторизован
+                return;
+            }
+
+            // Загружаем материалы
+            fetchMaterials();
+
+            // Обработка кнопки "Добавить материал"
+            document.getElementById('add-material-btn').addEventListener('click', function() {
+                addMaterial();
+            });
+        });
+
+        function fetchMaterials() {
+            fetch('/api/materials.php', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки материалов');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const materialsList = document.getElementById('materials-list');
+                materialsList.innerHTML = ''; // Очищаем список перед загрузкой новых данных
+
+                data.forEach(material => {
+                    const materialDiv = document.createElement('div');
+                    materialDiv.className = 'material-item';
+                    materialDiv.innerHTML = `
+                        <h3>${material.Name}</h3>
+                        <p>Описание: ${material.Description}</p>
+                        <p>Цена: ${material.Price} руб.</p>
+                        <button onclick="editMaterial(${material.MaterialID})" class="btn-edit">Редактировать</button>
+                        <button onclick="deleteMaterial(${material.MaterialID})" class="btn-delete">Удалить</button>
+                    `;
+                    materialsList.appendChild(materialDiv);
+                });
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Не удалось загрузить материалы. Проверьте консоль для подробностей.');
+            });
+        }
+
+        function editMaterial(materialID) {
+            const newName = prompt('Введите новое название материала:');
+            const newDescription = prompt('Введите новое описание материала:');
+            const newPrice = prompt('Введите новую цену материала:');
+            const newCategoryID = prompt('Введите новое ID категории:');
+            const newUnitOfMeasure = prompt('Ведите новую единицу измерения:');
+
+            if (newName && newDescription && newPrice && newCategoryID && newUnitOfMeasure) {
+                fetch('/api/materials.php', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        MaterialID: materialID,
+                        Name: newName,
+                        Description: newDescription,
+                        Price: newPrice,
+                        CategoryID: newCategoryID,
+                        UnitOfMeasure: newUnitOfMeasure 
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка обновления материала');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchMaterials(); // Обновляем список материалов
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось обновить материал. Проверьте консоль для подробностей.');
+                });
+            } else {
+                alert('Все поля должны быть заполнены!');
+            }
+        }
+
+        function deleteMaterial(materialID) {
+            const confirmDelete = confirm('Вы уверены, что хотите удалить этот материал?');
+            if (confirmDelete) {
+                fetch('/api/materials.php', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        MaterialID: materialID
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка удаления материала');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchMaterials(); // Обновляем список материалов
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось удалить материал. Проверьте консоль для подробностей.');
+                });
+            }
+        }
+
+        function addMaterial() {
+            const name = prompt('Введите название материала:');
+            const description = prompt('Введите описание материала:');
+            const price = prompt('Введите цену материала:');
+            const categoryID = prompt('Введите ID категории:');
+            const unitofmeasure = prompt('Ведите единицу измерения:');
+
+            if (name && description && price && categoryID && unitofmeasure) {
+                fetch('/api/materials.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        Name: name,
+                        Description: description,
+                        Price: price,
+                        CategoryID: categoryID,
+                        UnitOfMeasure: unitofmeasure
+                        // Убедитесь, что CategoryID передается
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Ошибка сервера: ${response.status} ${response.statusText}\n${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchMaterials(); // Обновляем список материалов
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось добавить материал. Проверьте консоль для подробностей.');
+                });
+            } else {
+                alert('Все поля должны быть заполнены!');
+            }
+        }     
+    </script>
+    <script src="js/logout.js"></script>
+</body>
+</html>

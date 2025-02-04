@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Остатки по складам - Автомастерская</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo.png" alt="Логотип автомастерской">
+                </a>
+                <h1>Автомастерская "Мотор"</h1>
+            </div>
+            <div class="auth-buttons">
+                <button id="logout-btn" class="btn-logout">Выйти</button>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class="welcome-section">
+            <h2>Остатки по складам</h2>
+            <button id="add-warehousestock-btn" class="btn-add">Добавить остаток</button>
+            <div id="warehousestock-list">
+                <!-- Список остатков будет загружен здесь -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Автомастерская "Мотор". Все права защищены.</p>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                window.location.href = 'login.html'; // Перенаправление на страницу входа, если пользователь не авторизован
+                return;
+            }
+
+            // Загружаем остатки
+            fetchStock();
+
+            // Обработка кнопки "Добавить остаток"
+            document.getElementById('add-warehousestock-btn').addEventListener('click', function() {
+                addStock();
+            });
+        });
+
+        function fetchStock() {
+            fetch('/api/warehousestock.php', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки остатков');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const stockList = document.getElementById('warehousestock-list');
+                stockList.innerHTML = ''; // Очищаем список перед загрузкой новых данных
+
+                data.forEach(stock => {
+                    const stockDiv = document.createElement('div');
+                    stockDiv.className = 'warehousestock-item';
+                    stockDiv.innerHTML = `
+                        <h3>Склад: ${warehousestock.WarehouseID}</h3>
+                        <p>Материал: ${warehousestock.MaterialID}</p>
+                        <p>Количество: ${warehousestock.Quantity}</p>
+                        <button onclick="editStock(${warehousestock.StockID})" class="btn-edit">Редактировать</button>
+                        <button onclick="deleteStock(${warehousestock.StockID})" class="btn-delete">Удалить</button>
+                    `;
+                    stockList.appendChild(stockDiv);
+                });
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Не удалось загрузить остатки. Проверьте консоль для подробностей.');
+            });
+        }
+
+        function editStock(stockID) {
+            const newQuantity = prompt('Введите новое количество:');
+
+            if (newQuantity) {
+                fetch('/api/warehousestock.php', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        StockID: stockID,
+                        Quantity: newQuantity
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка обновления остатка');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchStock(); // Обновляем список остатков
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось обновить остаток. Проверьте консоль для подробностей.');
+                });
+            } else {
+                alert('Поле количества должно быть заполнено!');
+            }
+        }
+
+        function deleteStock(stockID) {
+            const confirmDelete = confirm('Вы уверены, что хотите удалить этот остаток?');
+            if (confirmDelete) {
+                fetch('/api/warehousestock.php', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        StockID: stockID
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка удаления остатка');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchStock(); // Обновляем список остатков
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось удалить остаток. Проверьте консоль для подробностей.');
+                });
+            }
+        }
+
+        function addStock() {
+            const warehouseID = prompt('Введите ID склада:');
+            const materialID = prompt('Введите ID материала:');
+            const quantity = prompt('Введите количество:');
+
+            if (warehouseID && materialID && quantity) {
+                fetch('/api/warehousestock.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        WarehouseID: warehouseID,
+                        MaterialID: materialID,
+                        Quantity: quantity
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка добавления остатка');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchStock(); // Обновляем список остатков
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось добавить остаток. Проверьте консоль для подробностей.');
+                });
+            } else {
+                alert('Все поля должны быть заполнены!');
+            }
+        }
+    </script>
+    <script src="js/logout.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказы - Автомастерская</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="images/logo.png" alt="Логотип автомастерской">
+                </a>
+                <h1>Автомастерская "Мотор"</h1>
+            </div>
+            <div class="auth-buttons">
+                <button id="logout-btn" class="btn-logout">Выйти</button>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class="welcome-section">
+            <h2>Заказы</h2>
+            <button id="add-order-btn" class="btn-add">Добавить заказ</button>
+            <div id="orders-list">
+                <!-- Список заказов будет загружен здесь -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Автомастерская "Мотор". Все права защищены.</p>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                window.location.href = 'login.html'; // Перенаправление на страницу входа, если пользователь не авторизован
+                return;
+            }
+
+            // Загружаем заказы
+            fetchOrders();
+
+            // Обработка кнопки "Добавить заказ"
+            document.getElementById('add-order-btn').addEventListener('click', function() {
+                addOrder();
+            });
+        });
+
+        function fetchOrders() {
+            fetch('/api/orders.php', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки заказов');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const ordersList = document.getElementById('orders-list');
+                ordersList.innerHTML = ''; // Очищаем список перед загрузкой новых данных
+
+                data.forEach(order => {
+                    const orderDiv = document.createElement('div');
+                    orderDiv.className = 'order-item';
+                    orderDiv.innerHTML = `
+                        <h3>Заказ #${order.OrderID}</h3>
+                        <p>Поставщик ID: ${order.SupplierID}</p>
+                        <p>Дата заказа: ${order.OrderDate}</p>
+                        <p>Статус: ${order.Status}</p>
+                        <button onclick="editOrder(${order.OrderID})" class="btn-edit">Редактировать</button>
+                        <button onclick="deleteOrder(${order.OrderID})" class="btn-delete">Удалить</button>
+                    `;
+                    ordersList.appendChild(orderDiv);
+                });
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Не удалось загрузить заказы. Проверьте консоль для подробностей.');
+            });
+        }
+
+        function editOrder(orderID) {
+            const newSupplierID = prompt('Введите новый ID поставщика:');
+            const newOrderDate = prompt('Введите новую дату заказа:');
+            const newStatus = prompt('Введите новый статус заказа:');
+
+            if (newSupplierID && newOrderDate && newStatus) {
+                fetch('/api/orders.php', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        OrderID: orderID,
+                        SupplierID: newSupplierID,
+                        OrderDate: newOrderDate,
+                        Status: newStatus
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка обновления заказа');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchOrders(); // Обновляем список заказов
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось обновить заказ. Проверьте консоль для подробностей.');
+                });
+            } else {
+                alert('Все поля должны быть заполнены!');
+            }
+        }
+
+        function deleteOrder(orderID) {
+            const confirmDelete = confirm('Вы уверены, что хотите удалить этот заказ?');
+            if (confirmDelete) {
+                fetch('/api/orders.php', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        OrderID: orderID
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Ошибка сервера: ${response.status} ${response.statusText}\n${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchOrders(); // Обновляем список заказов
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось удалить заказ. Проверьте консоль для подробностей.');
+                });
+            }
+        }
+
+        function addOrder() {
+            const supplierID = prompt('Введите ID поставщика:');
+            const orderDate = prompt('Введите дату заказа:');
+            const status = prompt('Введите статус заказа:');
+
+            if (supplierID && orderDate && status) {
+                fetch('/api/orders.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        SupplierID: supplierID,
+                        OrderDate: orderDate,
+                        Status: status
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка добавления заказа');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchOrders(); // Обновляем список заказов
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Не удалось добавить заказ. Проверьте консоль для подробностей.');
+                });
+            } else {
+                alert('Все поля должны быть заполнены!');
+            }
+        }
+    </script>
+    <script src="js/logout.js"></script>
+</body>
+</html>

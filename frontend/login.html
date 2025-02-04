@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход и регистрация - Автомастерская</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h2 id="auth-title">Вход</h2>
+        <form id="authForm">
+            <label for="login">Логин:</label>
+            <input type="text" id="login" name="login" required>
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit" id="auth-button">Войти</button>
+        </form>
+        <p id="auth-switch">Нет аккаунта? <a href="#" id="switch-to-register">Зарегистрируйтесь</a></p>
+    </div>
+    <script src="js/auth.js"></script>
+</body>
+</html>
